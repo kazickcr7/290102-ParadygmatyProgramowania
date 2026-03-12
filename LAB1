@@ -1,0 +1,63 @@
+#include <iostream>
+using namespace std;
+
+void dodaj_osobe(string *tabNazwiska, string osoba) {
+    for (int i = 0; i < 10; i++) {
+        if (tabNazwiska[i] == "") {
+            tabNazwiska[i] = osoba;
+            break;
+        }
+    }
+}
+
+void ustaw_obecnosc(string *tabNazwiska, bool *tabObecnosc, string osoba) {
+    for (int i = 0; i < 10; i++) {
+        if (tabNazwiska[i] == osoba) {
+            tabObecnosc[i] = true;
+        }
+    }
+}
+
+void wyswietl(string *tabNazwiska, bool *tabObecnosc) {
+    for (int i = 0; i < 10; i++) {
+        if (tabNazwiska[i] != "") {
+            cout << tabNazwiska[i] << " " << tabObecnosc[i] << endl;
+        }
+    }
+}
+
+int main() {
+    string tabNazwiska[10];
+    bool tabObecnosc[10] ;
+    string osoba;
+    int wybor;
+
+    do {
+        cout << "1 DODAJ OSOBE" << endl;
+        cout << "2 USTAW OBECNOSC" << endl;
+        cout << "3 WYSWIETL" << endl;
+        cout << "0 WYJSCIE" << endl;
+        cin >> wybor;
+
+        switch (wybor) {
+            case 1:
+                cin >> osoba;
+                dodaj_osobe(tabNazwiska, osoba);
+                break; 
+            case 2:
+                cin >> osoba;
+                ustaw_obecnosc(tabNazwiska, tabObecnosc, osoba);
+                break; 
+            case 3:
+                wyswietl(tabNazwiska, tabObecnosc);
+                break;
+            case 0:
+                break;
+            default:
+                cout << "ZLE WYBRALES" << endl;
+                break;
+        }
+    } while (wybor != 0);
+
+    return 0;
+}
