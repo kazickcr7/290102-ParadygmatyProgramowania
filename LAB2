@@ -1,0 +1,119 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Osoba {
+private:
+    string imie = "";
+    string nazwisko = "";
+    string id = "";
+    string pesel = "";
+    int wiek = 0;
+
+public:
+    void set_imie(string n_imie) {
+        if (n_imie.length() > 2) {
+            imie = n_imie;
+        }
+    }
+    void set_nazwisko(string n_nazwisko) { nazwisko = n_nazwisko; }
+    void set_id(string n_id) { id = n_id; }
+    void set_pesel(string n_pesel) { pesel = n_pesel; }
+    void set_wiek(int n_wiek) { wiek = n_wiek; }
+    
+    string get_imie() { return imie; }
+    string get_nazwisko() { return nazwisko; }
+    string get_id() { return id; }
+    string get_pesel() { return pesel; }
+    int get_wiek() { return wiek; }
+};
+
+class Program {
+private:
+    Osoba tab[10];
+
+public:
+    void dodaj_uzytkownika(string imie, string nazwisko, string id, string pesel, int wiek) {
+        for (int i = 0; i < 10; i++) {
+            if (tab[i].get_imie() == "") {
+                tab[i].set_imie(imie);
+                tab[i].set_nazwisko(nazwisko);
+                tab[i].set_id(id);
+                tab[i].set_pesel(pesel);
+                tab[i].set_wiek(wiek);
+                break;
+            }
+        }
+    }
+
+    void wyswietl_() {
+        for (int i = 0; i < 10; i++) {
+            if (tab[i].get_imie() != "") {
+                cout << tab[i].get_imie() << " " << tab[i].get_nazwisko() << " " 
+                     << tab[i].get_id() << " " << tab[i].get_pesel() << " " << tab[i].get_wiek() << endl;
+            }
+        }
+    }
+
+    void usun_(string imie) {
+        for (int i = 0; i < 10; i++) {
+            if (tab[i].get_imie() == imie) {
+                tab[i].set_imie("");
+                tab[i].set_nazwisko("");
+                tab[i].set_id("");
+                tab[i].set_pesel("");
+                tab[i].set_wiek(0);
+                break;
+            }
+        }
+    }
+
+    void edytuj_(string sid, string nid, string imie, string nazwisko, string pesel, int wiek) {
+        for (int i = 0; i < 10; i++) {
+            if (tab[i].get_id() == sid) {
+                tab[i].set_id(nid);
+                tab[i].set_imie(imie);
+                tab[i].set_nazwisko(nazwisko);
+                tab[i].set_pesel(pesel);
+                tab[i].set_wiek(wiek);
+                break;
+            }
+        }
+    }
+};
+
+int main() {
+    Program program;
+    string id, nid, imie, nazwisko, pesel;
+    int wiek, wybor;
+
+    do {
+        cout << "1 DODAJ OSOBE" << endl;
+        cout << "2 WYSWIETL" << endl;
+        cout << "3 USUN" << endl;
+        cout << "4 EDYTUJ" << endl;
+        cout << "0 WYJSCIE" << endl;
+        cin >> wybor;
+
+        switch (wybor) {
+            case 1:
+                cin >> imie >> nazwisko >> id >> pesel >> wiek;
+                program.dodaj_uzytkownika(imie, nazwisko, id, pesel, wiek);
+                break;
+            case 2:
+                program.wyswietl_();
+                break;
+            case 3:
+                cin >> imie;
+                program.usun_(imie);
+                break;
+            case 4:
+                cin >> id >> nid >> imie >> nazwisko >> pesel >> wiek;
+                program.edytuj_(id, nid, imie, nazwisko, pesel, wiek);
+                break;
+        }
+    } while (wybor != 0);
+
+    return 0;
+}
