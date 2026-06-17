@@ -1,0 +1,335 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+
+using namespace std;
+
+class Serializable {
+public:
+    virtual string serialize() = 0;
+};
+
+class Osoba : public Serializable {
+public:
+    string imie, nazwisko, id;
+    int wiek;
+
+    Osoba(string i, string n, string _id, int w) {
+        imie = i;
+        nazwisko = n;
+        id = _id;
+        wiek = w;
+    }
+
+    virtual void wyswietl() {
+        cout << imie << " " << nazwisko << " [" << id << "]";
+    }
+
+    virtual string serialize() {
+        return "1 " + imie + " " + nazwisko + " " + id + " " + to_string(wiek);
+    }
+};
+
+class Student : public Osoba {
+public:
+    string indeks;
+    Student(string i, string n, string _id, int w, string ind) : Osoba(i, n, _id, w) {
+        indeks = ind;
+    }
+
+    virtual void wyswietl() {
+        cout << imie << " " << nazwisko << " [" << id << "] Indeks: " << indeks;
+    }
+
+    virtual string serialize() {
+        return "8 " + imie + " " + nazwisko + " " + id + " " + to_string(wiek) + " " + indeks;
+    }
+};
+
+class StudentZaoczny : public Student {
+public:
+    int czesne;
+    StudentZaoczny(string i, string n, string _id, int w, string ind, int cz) : Student(i, n, _id, w, ind) {
+        czesne = cz;
+    }
+
+    virtual void wyswietl() {
+        cout << imie << " " << nazwisko << " [" << id << "] Indeks: " << indeks << " Czesne: " << czesne;
+    }
+
+    virtual string serialize() {
+        return "10 " + imie + " " + nazwisko + " " + id + " " + to_string(wiek) + " " + indeks + " " + to_string(czesne);
+    }
+};
+
+class Stazysta : public Osoba {
+public:
+    string dzial;
+    Stazysta(string i, string n, string _id, int w, string dz) : Osoba(i, n, _id, w) {
+        dzial = dz;
+    }
+
+    virtual void wyswietl() {
+        cout << imie << " " << nazwisko << " [" << id << "] Dzial: " << dzial;
+    }
+
+    virtual string serialize() {
+        return "9 " + imie + " " + nazwisko + " " + id + " " + to_string(wiek) + " " + dzial;
+    }
+};
+
+class ListaObecnosci {
+public:
+    Osoba **tabOsob;    
+    bool *tabObecny;    
+    int ilosc;
+    int max;
+
+    ListaObecnosci(int rozmiar = 10) {
+        max = rozmiar;
+        ilosc = 0;
+        tabOsob = new Osoba*[max];
+        tabObecny = new bool[max];
+    }
+
+    void dodaj(Osoba *os) {
+        if (ilosc < max) {
+            tabOsob[ilosc] = os;
+            tabObecny[ilosc] = false;
+            ilosc++;
+        }
+    }
+
+    void wyswietlListe() {
+        cout << "\nzawartosc listy" << endl;
+        if (ilosc == 0) {
+            cout << "lista jest pusta" << endl;
+        }
+
+        for (int i = 0; i < ilosc; i++) {
+            cout << i << " ";
+            
+            tabOsob[i]->wyswietl();
+
+            cout << " status ";
+            if (tabObecny[i] == true) {
+                cout << "potwierdzona obecnosc";
+            } else {
+                cout << "brak obecnosci";
+            }
+            cout << endl;
+        }
+        cout << endl;
+    }
+
+    void ustawObecnosc(string nazwisko, bool stan) {
+        for (int i = 0; i < ilosc; i++) {
+            if (tabOsob[i]->nazwisko == nazwisko) {
+                tabObecny[i] = stan;
+            }
+        }
+    }
+
+    void usunZListy(string nazwisko) {
+        for (int i = 0; i < ilosc; i++) {
+            if (tabOsob[i]->nazwisko == nazwisko) {
+                for (int j = i; j < ilosc - 1; j++) {
+                    tabOsob[j] = tabOsob[j+1];
+                    tabObecny[j] = tabObecny[j+1];
+                }
+                ilosc--;
+                break;
+            }
+        }
+    }
+};
+
+class InterfejsUzytkownika {
+private:
+    Osoba **tablicaOsob;
+    int iloscOsob;
+    ListaObecnosci **tablicaList;
+    int iloscList;
+
+public:
+    InterfejsUzytkownika() {
+        tablicaOsob = new Osoba*[100];
+        iloscOsob = 0;
+        tablicaList = new ListaObecnosci*[10];
+        iloscList = 0;
+    }
+
+    void zapiszDoPliku() {
+        ofstream plik("lab6ppo.txt");
+        if (!plik.is_open()) return;
+
+        plik << iloscOsob << endl;
+        for (int i = 0; i < iloscOsob; i++) {
+            plik << tablicaOsob[i]->serialize() << endl;
+        }
+
+        plik << iloscList << endl;
+        for (int i = 0; i < iloscList; i++) {
+            plik << tablicaList[i]->ilosc << endl;
+            for (int j = 0; j < tablicaList[i]->ilosc; j++) {
+                plik << tablicaList[i]->tabOsob[j]->nazwisko << " " << tablicaList[i]->tabObecny[j] << endl;
+            }
+        }
+        plik.close();
+    }
+
+    void odczytajZPliku() {
+        ifstream plik("lab6ppo.txt");
+        if (!plik.is_open()) return;
+
+        int ileOsob;
+        plik >> ileOsob;
+        for (int i = 0; i < ileOsob; i++) {
+            int typ, w, dod_int;
+            string im, n, id_str, dod;
+            plik >> typ >> im >> n >> id_str >> w;
+            
+            if (typ == 1) {
+                tablicaOsob[iloscOsob++] = new Osoba(im, n, id_str, w);
+            } else if (typ == 8) {
+                plik >> dod;
+                tablicaOsob[iloscOsob++] = new Student(im, n, id_str, w, dod);
+            } else if (typ == 10) {
+                plik >> dod >> dod_int;
+                tablicaOsob[iloscOsob++] = new StudentZaoczny(im, n, id_str, w, dod, dod_int);
+            } else if (typ == 9) {
+                plik >> dod;
+                tablicaOsob[iloscOsob++] = new Stazysta(im, n, id_str, w, dod);
+            }
+        }
+
+        int ileList;
+        plik >> ileList;
+        for (int i = 0; i < ileList; i++) {
+            ListaObecnosci *lista = new ListaObecnosci();
+            int ileWLiscie;
+            plik >> ileWLiscie;
+            for (int j = 0; j < ileWLiscie; j++) {
+                string n;
+                bool st;
+                plik >> n >> st;
+                for (int k = 0; k < iloscOsob; k++) {
+                    if (tablicaOsob[k]->nazwisko == n) {
+                        lista->dodaj(tablicaOsob[k]);
+                        lista->tabObecny[lista->ilosc - 1] = st;
+                    }
+                }
+            }
+            tablicaList[iloscList++] = lista;
+        }
+        plik.close();
+    }
+
+    void loop() {
+        int wybor;
+        string i_str, n, id_str, dodatek;
+        int w, dodatek_int;
+
+        do {
+            cout << "---------------------------" << endl;
+            cout << "1 aby dodac osobe" << endl;
+            cout << "8 aby dodac studenta" << endl;
+            cout << "10 aby dodac studenta zaocznego" << endl;
+            cout << "9 aby dodac stazyste" << endl;
+            cout << "2 aby dodac liste" << endl;
+            cout << "3 aby dodac osobe do listy" << endl;
+            cout << "4 aby ustawic obecnosc" << endl;
+            cout << "5 aby usunac osobe z listy" << endl;
+            cout << "6 aby zmienic dane osoby" << endl;
+            cout << "7 aby wyswietlic liste" << endl;
+            cout << "11 aby zapisac" << endl;
+            cout << "12 aby wczytac" << endl;
+            cout << "0 wyjscie" << endl;
+            cout << "wybor ";
+            cin >> wybor;
+
+            switch (wybor) {
+                case 1:
+                    cout << "podaj imie nazwisko id wiek ";
+                    cin >> i_str >> n >> id_str >> w;
+                    tablicaOsob[iloscOsob++] = new Osoba(i_str, n, id_str, w);
+                    break;
+                case 8:
+                    cout << "podaj imie nazwisko id wiek indeks ";
+                    cin >> i_str >> n >> id_str >> w >> dodatek;
+                    tablicaOsob[iloscOsob++] = new Student(i_str, n, id_str, w, dodatek);
+                    break;
+                case 10:
+                    cout << "podaj imie nazwisko id wiek indeks czesne ";
+                    cin >> i_str >> n >> id_str >> w >> dodatek >> dodatek_int;
+                    tablicaOsob[iloscOsob++] = new StudentZaoczny(i_str, n, id_str, w, dodatek, dodatek_int);
+                    break;
+                case 9:
+                    cout << "podaj imie nazwisko id wiek dzial ";
+                    cin >> i_str >> n >> id_str >> w >> dodatek;
+                    tablicaOsob[iloscOsob++] = new Stazysta(i_str, n, id_str, w, dodatek);
+                    break;
+                case 2:
+                    tablicaList[iloscList++] = new ListaObecnosci();
+                    cout << "utworzono liste nr " << iloscList-1 << endl;
+                    break;
+                case 3: {
+                    int nrListy;
+                    cout << "nr listy i nazwisko "; cin >> nrListy >> n;
+                    if(nrListy < iloscList) {
+                        for(int i = 0; i < iloscOsob; i++) {
+                            if(tablicaOsob[i]->nazwisko == n) {
+                                tablicaList[nrListy]->dodaj(tablicaOsob[i]);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 4: {
+                    int nrListy;
+                    bool stan; cout << "nr listy nazwisko i stan 0 lub 1 "; cin >> nrListy >> n >> stan;
+                    if(nrListy < iloscList) {
+                        tablicaList[nrListy]->ustawObecnosc(n, stan);
+                    }
+                    break;
+                }
+                case 5: {
+                    int nrListy;
+                    cout << "nr listy i nazwisko "; cin >> nrListy >> n;
+                    if(nrListy < iloscList) {
+                        tablicaList[nrListy]->usunZListy(n);
+                    }
+                    break;
+                }
+                case 6:
+                    cout << "nazwisko osoby do zmiany "; cin >> n;
+                    for(int i = 0; i < iloscOsob; i++) {
+                        if(tablicaOsob[i]->nazwisko == n) {
+                            cout << "nowe imie "; cin >> tablicaOsob[i]->imie;
+                        }
+                    }
+                    break;
+                case 7: {
+                    int nrListy;
+                    cout << "ktora liste wyswietlic "; cin >> nrListy;
+                    if(nrListy < iloscList) {
+                        tablicaList[nrListy]->wyswietlListe();
+                    }
+                    break;
+                }
+                case 11:
+                    zapiszDoPliku();
+                    break;
+                case 12:
+                    odczytajZPliku();
+                    break;
+            }
+        } while (wybor != 0);
+    }
+};
+
+int main() {
+    InterfejsUzytkownika ui;
+    ui.loop();
+    return 0;
+}
