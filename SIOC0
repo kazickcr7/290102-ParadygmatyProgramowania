@@ -1,0 +1,27 @@
+% Parametry śmigła i obrotu
+blades = 4;
+rpm = pi/47;
+alpha = 0.0:pi*0.01:2*pi;
+
+% Rysuję pierwszą klatkę ze śmigłem
+rho = sin(blades * alpha + rpm);
+polarplot(alpha, rho, 'r', 'LineWidth', 2);
+
+% Pobieram wymiary wykresu i tworzę pustą macierz na obraz
+h_init = getframe(gcf);
+frame = h_init.cdata;
+
+% Pętla symulująca skanowanie linia po linii
+for m = 2:size(frame, 1)
+    % Zmieniam pozycję śmigła (obrót w czasie)
+    rho = sin(blades * alpha + m * rpm);
+    polarplot(alpha, rho, 'r', 'LineWidth', 2);
+
+    % Pobieram nową klatkę i biorę z niej tylko jedną poziomą linię
+    h = getframe(gcf);
+    frame(m, :, :) = h.cdata(m, :, :);
+end
+
+% Wyświetlam gotowy zniekształcony obraz
+figure;
+imshow(frame);
